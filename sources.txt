@@ -1,0 +1,3 @@
+https://www.reuters.com/rssFeed/worldNews?format=xml
+https://www.reuters.com/rssFeed/technologyNews?format=xml
+https://www.livemint.com/rss/homepage
