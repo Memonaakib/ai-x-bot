@@ -2,7 +2,7 @@ name: AI X Bot
 
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "0 */2 * * *"  # Every 2 hours
   workflow_dispatch:
 
 jobs:
@@ -19,8 +19,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      # …and so on…
-
 
       - name: Install system deps
         run: |
@@ -46,15 +44,8 @@ jobs:
         run: |
           mkdir -p "${{ env.NLTK_DATA }}"
           python - <<EOF
-          import nltk
-          nltk.download('stopwords', download_dir="${{ env.NLTK_DATA }}", quiet=True) EOF
-
-      - name: Run AI X Bot
-        env:
-          API_KEY: ${{ secrets.API_KEY }}
-          API_SECRET: ${{ secrets.API_SECRET }}
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          ACCESS_SECRET: ${{ secrets.ACCESS_SECRET }}
-          BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
-        run: |
-          timeout 18m python tweet_bot.py --max-posts 1 || echo "Exited $?"
+import nltk
+nltk.download('punkt', download_dir="${{ env.NLTK_DATA }}", quiet=True)
+nltk.download('stopwords', download_dir="${{ env.NLTK_DATA }}", quiet=True)
+nltk.download('wordnet', download_dir="${{ env.NLTK_DATA }}", quiet=True)
+EOF
