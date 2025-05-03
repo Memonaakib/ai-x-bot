@@ -43,7 +43,7 @@ jobs:
         if: steps.cache-nltk.outputs.cache-hit != 'true'
         run: |
           mkdir -p "${{ env.NLTK_DATA }}"
-          python -c "import nltk; nltk.download('punkt', download_dir='${{ env.NLTK_DATA }}', quiet=True); nltk.download('stopwords', download_dir='${{ env.NLTK_DATA }}', quiet=True); nltk.download('wordnet', download_dir='${{ env.NLTK_DATA }}', quiet=True)"
+          python -c "import nltk; nltk.download('punkt', download_dir='${{ env.NLTK_DATA }}', quiet=True); nltk.download('stopwords', download_dir='${{ env.NLTK_DATA }}', quiet=True)"
 
       - name: Run Twitter Bot
         env:
