@@ -1,0 +1,59 @@
+name: AI X Bot
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"  # Every 2 hours
+  workflow_dispatch:
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NLTK_DATA: /home/runner/nltk_data
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-dev libxslt-dev libffi-dev python3-dev
+
+      - name: Install Python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir -r requirements.txt
+
+      - name: Cache NLTK data
+        id: cache-nltk
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NLTK_DATA }}
+          key: ${{ runner.os }}-nltk-${{ hashFiles('requirements.txt') }}-v1
+          restore-keys: |
+            ${{ runner.os }}-nltk-
+
+      - name: Download NLTK datasets (if missing)
+        if: steps.cache-nltk.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "${{ env.NLTK_DATA }}"
+          python - <<EOF
+import nltk
+nltk.download('stopwords', download_dir="${{ env.NLTK_DATA }}", quiet=True)
+EOF
+
+      - name: Run AI X Bot
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          API_SECRET: ${{ secrets.API_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          ACCESS_SECRET: ${{ secrets.ACCESS_SECRET }}
+          BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
+        run: |
+          timeout 18m python tweet_bot.py --max-posts 1 || echo "Exited $?"
