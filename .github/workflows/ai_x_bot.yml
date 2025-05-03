@@ -2,7 +2,7 @@ name: AI X Bot
 
 on:
   schedule:
-    - cron: "0 */2 * * *"  # Every 2 hours
+    - cron: "0 */2 * * *"
   workflow_dispatch:
 
 jobs:
@@ -19,6 +19,8 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
+      # …and so on…
+
 
       - name: Install system deps
         run: |
@@ -44,9 +46,8 @@ jobs:
         run: |
           mkdir -p "${{ env.NLTK_DATA }}"
           python - <<EOF
-import nltk
-nltk.download('stopwords', download_dir="${{ env.NLTK_DATA }}", quiet=True)
-EOF
+          import nltk
+          nltk.download('stopwords', download_dir="${{ env.NLTK_DATA }}", quiet=True) EOF
 
       - name: Run AI X Bot
         env:
