@@ -17,6 +17,7 @@ VIRAL_KEYWORDS = ['breaking', 'latest', 'alert', 'exclusive', 'india', 'israel',
 
 class AIXBot:
     def __init__(self):
+        nltk.download('punkt', download_dir=nltk_data_path, quiet=True)
         nltk.download('stopwords', download_dir=nltk_data_path, quiet=True)
         self.stop_words = set(stopwords.words('english'))
 
