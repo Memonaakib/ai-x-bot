@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, time, json, re, argparse
+import os, time, json, re, argparse, random
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 
@@ -56,7 +56,7 @@ class AIXBot:
 
     def is_viral(self, title):
         cleaned = self.clean(title)
-        return any(re.search(rf"\\b{kw}\\b", cleaned) for kw in VIRAL_KEYWORDS)
+        return any(re.search(rf"\b{kw}\b", cleaned) for kw in VIRAL_KEYWORDS)
 
     def fetch_headlines(self, url):
         feed = feedparser.parse(url)
@@ -73,18 +73,44 @@ class AIXBot:
 
         # Filter unique headlines and rank by virality
         unique = list(dict.fromkeys(headlines))
-        viral = [h for h in unique if self.is_viral(h)]
+        viral = [h for h in unique if self.is_viral(h) and h not in self.posted]
 
         posted = 0
         for title in viral:
             if time.time() - self.last_post_time < self.min_interval:
                 break
             tweet = f"🧠 BREAKING: {title}"
-            self.client.create_tweet(text=tweet)
-            self.last_post_time = time.time()
-            posted += 1
-            if posted >= max_posts:
+            try:
+                self.client.create_tweet(text=tweet)
+                self.posted[title] = datetime.now().isoformat()
+                self.last_post_time = time.time()
+                posted += 1
+                print("Posted:", tweet)
+                if posted >= max_posts:
+                    break
+            except tweepy.errors.TooManyRequests:
+                print("Rate limit hit. Try again later.")
                 break
+            except Exception as e:
+                print(f"Tweet failed: {e}")
+                continue
+
+        # Fallback post if nothing was posted
+        if posted == 0:
+            fallback_posts = [
+                "Quote of the Day: 'Success is not final; failure is not fatal: It is the courage to continue that counts.' – Winston Churchill",
+                "Trivia Time: What’s the capital of Australia? Reply if you know!",
+                "Quick Joke: Why did the programmer quit his job? Because he didn’t get arrays!",
+                "Poll: Do you think AI will replace more jobs in the next 10 years? Yes/No?",
+                "Fun Fact: Honey never spoils. Archaeologists have found 3000-year-old jars of honey in ancient tombs!"
+            ]
+            tweet = random.choice(fallback_posts)
+            try:
+                self.client.create_tweet(text=tweet)
+                self.last_post_time = time.time()
+                print("Fallback post shared.")
+            except Exception as e:
+                print(f"Fallback tweet failed: {e}")
 
         self.save_history()
         print(f"Posted {posted} headline(s)")
